@@ -1,19 +1,14 @@
 import sqlite3
 
-
 DB_PATH = 'database.db'
-
-
 
 def conectar():
     return sqlite3.connect(DB_PATH)
 
-
 def init_db():
     conn = conectar()
     cur = conn.cursor()
-    
-    
+    # Tabela de jogadores
     cur.execute('''
         CREATE TABLE IF NOT EXISTS jogadores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,7 +16,6 @@ def init_db():
             usuario TEXT UNIQUE NOT NULL
         )
     ''')
-
     # Tabela de partidas
     cur.execute('''
         CREATE TABLE IF NOT EXISTS partidas (
@@ -38,7 +32,6 @@ def init_db():
             FOREIGN KEY (vencedor_id) REFERENCES jogadores(id)
         )
     ''')
-
     # Tabela de jogadas
     cur.execute('''
         CREATE TABLE IF NOT EXISTS jogadas (
@@ -47,13 +40,12 @@ def init_db():
             jogador_id INTEGER NOT NULL,
             linha INTEGER NOT NULL,
             coluna INTEGER NOT NULL,
-            resultado TEXT, -- 'acerto' ou 'erro'
+            resultado TEXT,
             timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (partida_id) REFERENCES partidas(id),
             FOREIGN KEY (jogador_id) REFERENCES jogadores(id)
         )
     ''')
-
     # Tabela de navios
     cur.execute('''
         CREATE TABLE IF NOT EXISTS navios (
@@ -63,13 +55,12 @@ def init_db():
             linha INTEGER NOT NULL,
             coluna INTEGER NOT NULL,
             tamanho INTEGER NOT NULL,
-            orientacao TEXT NOT NULL, -- 'h' ou 'v'
+            orientacao TEXT NOT NULL,
             atingido INTEGER DEFAULT 0,
             FOREIGN KEY (partida_id) REFERENCES partidas(id),
             FOREIGN KEY (jogador_id) REFERENCES jogadores(id)
         )
     ''')
-
     conn.commit()
     conn.close()
     print("✅ Banco de dados inicializado com sucesso.")
