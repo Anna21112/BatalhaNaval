@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from models import ( registrar_jogada, verificar_acerto, vez_atual, atualizar_vez, verificar_fim_de_jogo, init_db)
+from models import ( registrar_jogada, verificar_acerto, vez_atual, atualizar_vez, verificar_fim_de_jogo, init_db,)
 from utils import letra_para_indice
-
+from models import criar_partida
 
 socketio = None  # Será atribuído no app.py
 
@@ -14,6 +14,17 @@ PARTIDA_ID = 1
 @bp.route('/')
 def index():
     return "Servidor está rodando!"
+
+@bp.route('/criar_partida', methods=['POST'])
+def criar_partida_route():
+    dados = request.get_json()
+    jogador1_id = dados.get('jogador1_id')
+    jogador2_id = dados.get('jogador2_id')
+    if not jogador1_id or not jogador2_id:
+        return jsonify({"status": "erro", "mensagem": "IDs dos jogadores são obrigatórios"}), 400
+
+    partida_id = criar_partida(jogador1_id, jogador2_id)
+    return jsonify({"status": "ok", "partida_id": partida_id}), 201
 
 @bp.route('/jogada', methods=['POST'])
 def receber_jogada():

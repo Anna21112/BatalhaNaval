@@ -1,4 +1,23 @@
 from .conexao import conectar
+from .navios import gerar_navios_automaticamente
+
+def criar_partida(jogador1_id, jogador2_id):
+    conn = conectar()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO partidas (jogador1_id, jogador2_id) VALUES (?, ?)",
+        (jogador1_id, jogador2_id)
+    )
+    conn.commit()
+    
+    # Pega o id da partida recém-criada
+    partida_id = cur.lastrowid
+    conn.close()
+
+    gerar_navios_automaticamente(partida_id, jogador1_id)
+    gerar_navios_automaticamente(partida_id, jogador2_id)
+
+    return partida_id
 
 def vez_atual(partida_id):
     conn = conectar()
