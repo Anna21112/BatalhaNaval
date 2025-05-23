@@ -14,6 +14,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
             usuario TEXT UNIQUE NOT NULL
+            senha TEXT NOT NULL
         )
     ''')
     # Tabela de partidas
