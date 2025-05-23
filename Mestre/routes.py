@@ -62,11 +62,11 @@ def receber_jogada():
     if isinstance(linha, str):
         linha = letra_para_indice(linha)
 
-     # Validação extra
+    # Validação extra
     valida, msg = jogada_valida(partida_id, linha, coluna)
     if not valida:
         return jsonify({"status": "erro", "mensagem": msg}), 400
-     
+    
     # Verifica se é a vez do jogador
     if jogador_id != vez_atual(partida_id):
         return jsonify({"status": "erro", "mensagem": "Não é sua vez!"}), 403
