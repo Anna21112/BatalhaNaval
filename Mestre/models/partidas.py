@@ -1,5 +1,5 @@
 from .conexao import conectar
-from .navios import gerar_navios_automaticamente
+from .gerarNavios import gerar_navios_automaticamente
 
 def criar_partida(jogador1_id, jogador2_id):
     conn = conectar()
