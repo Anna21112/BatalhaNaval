@@ -95,7 +95,7 @@ def receber_jogada():
     registrar_jogada(partida_id, jogador_id, linha, coluna, resultado)
 
     # Mensagem amigável
-    if resultado == True:
+    if resultado:
         mensagem = "Você acertou um navio!"
     else:
         mensagem = "Você errou o tiro."
