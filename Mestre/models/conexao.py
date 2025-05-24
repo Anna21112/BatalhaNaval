@@ -13,7 +13,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS jogadores (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nome TEXT NOT NULL,
-            usuario TEXT UNIQUE NOT NULL
+            usuario TEXT UNIQUE NOT NULL,
             senha TEXT NOT NULL
         )
     ''')

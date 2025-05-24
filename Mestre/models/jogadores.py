@@ -14,10 +14,10 @@ def criar_jogador(nome, usuario, senha):
 def autenticar_jogador(usuario, senha):
     conn = conectar()
     cur = conn.cursor()
-    cur.execute("SELECT id, usuario FROM jogadores WHERE usuario = ? AND senha = ?", (usuario, senha))
+    cur.execute("SELECT id, usuario, senha FROM jogadores WHERE usuario = ?", (usuario,))
     jogador = cur.fetchone()
     conn.close()
-    if jogador and bcrypt.checkpw(senha.encode(), jogador[2]):
+    if jogador and bcrypt.checkpw(senha.encode('utf-8'), jogador[2]):
         return jogador[:2]  # retorna id e usuario
     return None
 

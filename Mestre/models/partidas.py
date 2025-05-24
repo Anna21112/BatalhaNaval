@@ -58,22 +58,22 @@ def consultar_estado_partida(partida_id, jogador_id):
         "jogadas": jogadas
     }
 
-def jogada_valida(partida_id, linha, coluna):
+def jogada_valida(partida_id, jogador_id, linha, coluna):
     # Verifica se está dentro do tabuleiro
     if not (0 <= linha < 10) or not (0 <= coluna < 10):
         return False, "Jogada fora do tabuleiro"
 
-    # Verifica se a célula já foi jogada
+    # Verifica se a célula já foi jogada POR ESTE JOGADOR
     conn = conectar()
     cur = conn.cursor()
     cur.execute(
-        "SELECT 1 FROM jogadas WHERE partida_id = ? AND linha = ? AND coluna = ?",
-        (partida_id, linha, coluna)
+        "SELECT 1 FROM jogadas WHERE partida_id = ? AND jogador_id = ? AND linha = ? AND coluna = ?",
+        (partida_id, jogador_id, linha, coluna)
     )
     existe = cur.fetchone()
     conn.close()
     if existe:
-        return False, "Esta célula já foi jogada"
+        return False, "Esta célula já foi jogada por você"
     return True, ""
 
 def atualizar_vez(partida_id, novo_jogador_id):

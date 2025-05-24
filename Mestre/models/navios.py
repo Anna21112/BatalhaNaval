@@ -13,9 +13,9 @@ def verificar_acerto(partida_id, jogador_id, linha, coluna):
         cur.execute("UPDATE navios SET atingido = 1 WHERE id = ?", (navio[0],))
         conn.commit()
         conn.close()
-        return "acerto"
+        return True
     conn.close()
-    return "erro"
+    return False
 
 def verificar_fim_de_jogo(partida_id, jogador_id):
     conn = conectar()
