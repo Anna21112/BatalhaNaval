@@ -5,8 +5,8 @@ def criar_partida(jogador1_id, jogador2_id):
     conn = conectar()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO partidas (jogador1_id, jogador2_id) VALUES (?, ?)",
-        (jogador1_id, jogador2_id)
+        "INSERT INTO partidas (jogador1_id, jogador2_id, vez_atual) VALUES (?, ?, ?)",
+        (jogador1_id, jogador2_id, jogador1_id)
     )
     conn.commit()
     
@@ -18,6 +18,14 @@ def criar_partida(jogador1_id, jogador2_id):
     gerar_navios_automaticamente(partida_id, jogador2_id)
 
     return partida_id
+
+def obter_jogadores_partida(partida_id):
+    conn = conectar()
+    cur = conn.cursor()
+    cur.execute("SELECT jogador1_id, jogador2_id FROM partidas WHERE id = ?", (partida_id,))
+    resultado = cur.fetchone()
+    conn.close()
+    return resultado if resultado else (None, None)
 
 def vez_atual(partida_id):
     conn = conectar()
@@ -31,12 +39,19 @@ def consultar_estado_partida(partida_id, jogador_id):
     conn = conectar()
     cur = conn.cursor()
 
-    cur.execute("SELECT status, vez_atual FROM partidas WHERE id = ?", (partida_id,))
+    cur.execute("SELECT status, vez_atual, vencedor_id FROM partidas WHERE id = ?", (partida_id,))
     partida = cur.fetchone()
     if not partida:
         conn.close()
         return None
-    status, vez_atual = partida
+    status, vez_atual, vencedor_id = partida
+
+    vencedor_nome = None
+    if vencedor_id is not None:
+        cur.execute("SELECT nome FROM jogadores WHERE id = ?", (vencedor_id,))
+        row = cur.fetchone()
+        if row:
+            vencedor_nome = row[0]
 
     cur.execute("SELECT linha, coluna, tamanho, orientacao, atingido FROM navios WHERE partida_id = ? AND jogador_id = ?", (partida_id, jogador_id))
     navios = [
@@ -51,9 +66,13 @@ def consultar_estado_partida(partida_id, jogador_id):
     ]
 
     conn.close()
+    print("DEBUG vencedor_id:", vencedor_id, "vencedor_nome:", vencedor_nome)
+    
     return {
         "partida_status": status,
         "vez_atual": vez_atual,
+        "vencedor_id": vencedor_id,
+        "vencedor_nome": vencedor_nome,
         "navios": navios,
         "jogadas": jogadas
     }
@@ -82,3 +101,4 @@ def atualizar_vez(partida_id, novo_jogador_id):
     cur.execute("UPDATE partidas SET vez_atual = ? WHERE id = ?", (novo_jogador_id, partida_id))
     conn.commit()
     conn.close()
+

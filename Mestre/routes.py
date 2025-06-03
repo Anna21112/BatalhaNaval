@@ -3,6 +3,8 @@ from flask import Blueprint, request, jsonify
 from models import *
 from utils import letra_para_indice
 from models import criar_partida
+from models import obter_jogadores_partida
+from models import consultar_estado_partida
 
 socketio = None  # Será atribuído no app.py
 
@@ -72,6 +74,11 @@ def receber_jogada():
     if not partida_id:
         logging.warning("partida_id não informado na jogada")
         return jsonify({"status": "erro", "mensagem": "partida_id é obrigatório"}), 400
+    
+    estado = consultar_estado_partida(partida_id, jogador_id)
+    status = estado["partida_status"] if estado else None
+    if status == 'finalizada':
+      return jsonify({"status": "erro", "mensagem": "A partida já foi finalizada!"}), 400
 
     # Converte letras para índices
     if isinstance(linha, str):
@@ -84,13 +91,16 @@ def receber_jogada():
         return jsonify({"status": "erro", "mensagem": msg}), 400
     
     # Verifica se é a vez do jogador
-    if jogador_id != vez_atual(partida_id):
-        logging.warning(f"Jogador {jogador_id} tentou jogar fora da sua vez na partida {partida_id}")
-        return jsonify({"status": "erro", "mensagem": "Não é sua vez!"}), 403
+    if int(jogador_id) != int(vez_atual(partida_id)):
+     logging.warning(f"Jogador {jogador_id} tentou jogar fora da sua vez na partida {partida_id}")
+     return jsonify({"status": "erro", "mensagem": "Não é sua vez!"}), 403
     
     # Verifica o acerto ou erro
     resultado = verificar_acerto(partida_id, jogador_id, linha, coluna)
-         
+
+    jogador1_id, jogador2_id = obter_jogadores_partida(partida_id)
+    adversario = jogador2_id if int(jogador_id) == int(jogador1_id) else jogador1_id
+
     # Salva a jogada no banco de dados
     registrar_jogada(partida_id, jogador_id, linha, coluna, resultado)
 
@@ -101,14 +111,23 @@ def receber_jogada():
         mensagem = "Você errou o tiro."
 
     # Verifica se o adversário foi atingido
-    adversario = 2 if jogador_id == 1 else 1
+    jogador1_id, jogador2_id = obter_jogadores_partida(partida_id)
+    adversario = jogador2_id if int(jogador_id) == int(jogador1_id) else jogador1_id
     fim = verificar_fim_de_jogo(partida_id, adversario)
     
     # Se fim de jogo, emite evento e não alterna mais a vez
+    logging.info(f"verificar_fim_de_jogo: {fim} para partida {partida_id}, adversario {adversario}")
     if fim:
-        logging.info(f"Fim de jogo na partida {partida_id}. Vencedor: {jogador_id}")
-        socketio.emit('fim_de_jogo', {'vencedor': jogador_id, 'partida_id': partida_id})
-        return jsonify({"status": "ok", "resultado": resultado, "mensagem": mensagem, "Fim de jogo!": True}), 200
+     logging.info(f"Fim de jogo na partida {partida_id}. Vencedor: {jogador_id}")
+    # Atualiza status e vencedor no banco
+     conn = conectar()
+     cur = conn.cursor()
+     cur.execute("UPDATE partidas SET status = ?, vencedor_id = ?, data_fim = CURRENT_TIMESTAMP WHERE id = ?", 
+            ('finalizada', jogador_id, partida_id))
+     conn.commit()
+     conn.close()
+     socketio.emit('fim_de_jogo', {'vencedor': jogador_id, 'partida_id': partida_id})
+     return jsonify({"status": "ok", "resultado": resultado, "mensagem": mensagem, "Fim de jogo!": True}), 200
     
     # Alterna a vez para o adversário
     atualizar_vez(partida_id, adversario)

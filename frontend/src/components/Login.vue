@@ -83,7 +83,7 @@
             .then(resp => {
               // Salve o jogador_id se quiser usar depois
               localStorage.setItem('jogador_id', resp.data.jogador_id);
-              this.$router.push('/batalhanaval');
+              this.$router.push('/novaPartida');
             })
             .catch(err => {
               alert(err.response?.data?.mensagem || 'Usuário ou senha inválidos!');

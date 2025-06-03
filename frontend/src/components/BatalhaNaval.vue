@@ -12,7 +12,7 @@
           <v-col v-for="coluna in 10" :key="coluna" cols="1">
             <v-btn
               class="game-cell"
-              :color="grid[linha - 1][coluna - 1] === 'N' ? 'grey' : (grid[linha - 1][coluna - 1] === 'H' ? 'red' : 'blue')"
+              :color="grid[linha - 1][coluna - 1] === 'H' ? 'green' : (grid[linha - 1][coluna - 1] === 'X' ? 'red' : (grid[linha - 1][coluna - 1] === 'N' ? 'grey' : 'blue'))"
               @click="interagirCelula(linha, coluna)"
             >
               {{ grid[linha - 1][coluna - 1] }}
@@ -20,6 +20,15 @@
           </v-col>
         </v-row>
       </v-container>
+      <div v-if="partidaStatus === 'finalizada'" class="text-h5 mt-4" style="color: green;">
+        Fim de jogo!<br>
+        <span v-if="String(vencedorId) === String(jogadorId)">
+          Você venceu! 🏆
+        </span>
+        <span v-else>
+          O campeão foi {{ vencedorNome ? vencedorNome : 'o jogador ' + vencedorId }}!
+        </span>
+      </div>
       <v-btn block class="mt-4" style="background-color: #D32F2F; color: white;" @click="sairJogo">
         Sair do Jogo
       </v-btn>
@@ -32,11 +41,11 @@
   export default {
     data () {
       return {
-        // Inicializa o tabuleiro 10x10 com água ("~")
         grid: Array(10).fill().map(() => Array(10).fill('~')),
-        // Variável para definir se o usuário está posicionando navios
-
-        // Variável para contar a quantidade de navios posicionados
+        partidaStatus: '',
+        vencedorId: null,
+        jogadorId: localStorage.getItem('jogador_id'),
+        vencedorNome: null,
       };
     },
 
@@ -54,22 +63,39 @@
         const jogador_id = localStorage.getItem('jogador_id');
         try {
           const resp = await consultarPartida(partida_id, jogador_id);
-          // Atualize o grid com os navios vindos do back-end
+          // Inicializa o grid vazio
           this.grid = Array(10).fill().map(() => Array(10).fill('~'));
-          for (const navio of resp.data.navios) {
-            this.grid[navio.linha][navio.coluna] = navio.atingido ? 'H' : 'N';
+          this.partidaStatus = resp.data.partida_status || '';
+          this.vencedorId = resp.data.vencedor_id || null;
+          this.vencedorNome = resp.data.vencedor_nome || null;
+          // Mostra seus navios
+          for (const navio of resp.data.navios || []) {
+            this.grid[navio.linha][navio.coluna] = 'N';
           }
-        // Você pode também mostrar ataques/jogadas se quiser
+          // Mostra acertos/erros das jogadas
+          for (const jogada of resp.data.jogadas || []) {
+            if (String(jogada.jogador_id) === String(jogador_id)) {
+              if (jogada.resultado === true || jogada.resultado === 1 || jogada.resultado === 'True' || jogada.resultado === 'true' || jogada.resultado === '1') {
+                this.grid[jogada.linha][jogada.coluna] = 'H'; // Acerto (verde)
+              } else {
+                this.grid[jogada.linha][jogada.coluna] = 'X'; // Erro (vermelho)
+              }
+            }
+          }
         } catch (err) {
           alert('Erro ao carregar o estado da partida!');
         }
       },
 
       async interagirCelula (linha, coluna) {
+        if (this.partidaStatus === 'finalizada') {
+          alert('A partida já foi finalizada!');
+          return;
+        }
         const partida_id = localStorage.getItem('partida_id');
         const jogador_id = localStorage.getItem('jogador_id');
         try {
-          await enviarJogada(partida_id, jogador_id, linha - 1, coluna - 1);
+          const resp = await enviarJogada(partida_id, jogador_id, linha - 1, coluna - 1);
           await this.carregarEstadoPartida(); // Atualiza o grid após atacar
         } catch (err) {
           alert(err.response?.data?.mensagem || 'Erro ao enviar jogada!');

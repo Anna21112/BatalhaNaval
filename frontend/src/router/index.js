@@ -11,14 +11,8 @@ import { routes } from 'vue-router/auto-routes'
 import Cadastro from '@/components/Cadastro.vue'
 import Login from '@/components/Login.vue'
 import BatalhaNaval from '@/components/BatalhaNaval.vue'
-import NovaPartida from '@/components/NovaPartida.vue'
+import NovaPartida from '@/components/novaPartida.vue'
 
-// Depois, adicione a rota:
-routes.push({
-  path: '/novapartida',
-  name: 'novapartida',
-  component: NovaPartida,
-});
 
 // Add custom route to the auto-generated routes
 routes.push({
@@ -27,14 +21,32 @@ routes.push({
   component: Cadastro,
 }, {
   path: '/login',
-  name: 'login',
+  name: 'Login',
   component: Login,
 },
 {
   path: '/batalhanaval',
-  name: 'batalhanaval',
+  name: 'batalhaNaval',
   component: BatalhaNaval,
-})
+},
+{
+  path: '/cadastro',
+  name: 'Cadastro',
+  component: Cadastro },
+
+{
+  path: '/login',
+  name: 'login',
+  component: Login },
+
+{
+  path: '/batalhanaval',
+  name: 'batalhanaval',
+  component: BatalhaNaval },
+{
+  path: '/novapartida',
+  name: 'novapartida',
+  component: NovaPartida } )
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

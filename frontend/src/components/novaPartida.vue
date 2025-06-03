@@ -4,6 +4,10 @@
       <v-card-title class="text-h5 text-center">Nova Partida</v-card-title>
       <v-text-field v-model="jogador2_id" label="ID do segundo jogador" />
       <v-btn color="primary" @click="iniciarPartida">Criar Partida</v-btn>
+      <v-divider class="my-4" />
+      <v-card-title class="text-h6 text-center">Entrar em Partida</v-card-title>
+      <v-text-field v-model="partidaExistente" label="ID da Partida" />
+      <v-btn color="secondary" @click="entrarPartida">Entrar</v-btn>
     </v-card>
   </v-container>
 </template>
@@ -15,6 +19,7 @@
     data () {
       return {
         jogador2_id: '',
+        partidaExistente: '',
       };
     },
     methods: {
@@ -31,6 +36,14 @@
         } catch (err) {
           alert(err.response?.data?.mensagem || 'Erro ao criar partida!');
         }
+      },
+      entrarPartida () {
+        if (!this.partidaExistente) {
+          alert('Digite o ID da partida!');
+          return;
+        }
+        localStorage.setItem('partida_id', this.partidaExistente);
+        this.$router.push('/batalhanaval');
       },
     },
   };

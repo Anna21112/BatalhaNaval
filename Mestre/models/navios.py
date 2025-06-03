@@ -1,7 +1,10 @@
 from .conexao import conectar
 
 def verificar_acerto(partida_id, jogador_id, linha, coluna):
-    adversario = 2 if jogador_id == 1 else 1
+    from .partidas import obter_jogadores_partida
+    jogador1_id, jogador2_id = obter_jogadores_partida(partida_id)
+    adversario = jogador2_id if int(jogador_id) == int(jogador1_id) else jogador1_id
+
     conn = conectar()
     cur = conn.cursor()
     cur.execute(
